@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context 
+			http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/jee 
+			http://www.springframework.org/schema/jee/spring-jee.xsd
+			http://www.springframework.org/schema/aop 
+			http://www.springframework.org/schema/aop/spring-aop.xsd
+			http://www.springframework.org/schema/tx 
+			http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/mvc 
+			http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+			
+			
+	<!-- 开启注解 -->
+	<context:annotation-config />
+	<context:component-scan base-package="com.wy"/>
+	<!-- 支持注解驱动 -->
+	<mvc:annotation-driven/>  
+	<!-- 支持静态资源的处理  要求静态资源在webapp下而不是WEB-INF-->
+	<mvc:default-servlet-handler/>
+	<!-- 配置视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<!-- 1 引入db.properties -->
+	<context:property-placeholder location="classpath:db.properties" system-properties-mode="NEVER"/>
+	<!-- 2 配置datasource -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="username" value="${db.username}"/>
+		<property name="password" value="${db.password}"/>
+		<property name="url" value="${db.url}"/>
+		<property name="maxActive" value="${db.maxactive}"/>
+	</bean>
+	<!-- 3 配置sessionFactoryBean -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<!--提供一个dataSource  -->
+		<property name="dataSource" ref="dataSource"/>
+		<!-- 配置hibernate额外的一些属性 -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+		<!-- 配置映射文件 -->
+		<property name="mappingResources">
+			<list>
+				<value>com/wy/user/pojo/User.hbm.xml</value>
+				<value>com/wy/configure/pojo/Configure.hbm.xml</value>
+				<value>com/wy/category/pojo/Category.hbm.xml</value>
+				<value>com/wy/video/pojo/VideoState.hbm.xml</value>
+				<value>com/wy/video/pojo/Video.hbm.xml</value>
+				<value>com/wy/review/pojo/Review.hbm.xml</value>
+				<value>com/wy/crawl/pojo/DownVideo.hbm.xml</value>
+			</list>
+		</property>
+	</bean>
+	<!-- 4 配置事物管理器 -->
+	<bean id="txManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+	<!-- 5 配置事务模板 -->
+	<tx:advice id="crudTx" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true"/>
+			<tx:method name="list*" read-only="true"/>
+			<tx:method name="query*" read-only="true"/>
+			<tx:method name="*" propagation="REQUIRED"/>
+		</tx:attributes>
+	</tx:advice>
+	<!-- 6  配置AOP切面 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.wy..*ServiceImpl.*(..))" id="crudPc"/>
+		<aop:advisor advice-ref="crudTx" pointcut-ref="crudPc"/>
+	</aop:config>
+	
+	<bean id="cacheFilter" class="com.wy.filter.CacheFilter"/>
+	
+	<!-- 配置redis客户端单机版 -->
+ 
+	<bean id="jedisPool" class="redis.clients.jedis.JedisPool" destroy-method="close">
+		<constructor-arg name="host" value="10.128.2.129"/>
+		<constructor-arg name="port" value="6379"/>
+	</bean>
+
+	<!-- 配置redis客户端实现类 -->
+
+	<bean id="jedisClientSingle" class="com.wy.redis.JedisClientSingle"/>
+	
+	
+
+	<!-- 单机版和集群版不要共存  一个接口有两个实现类-->
+	
+	<!-- 配置redis客户端集群版 -->
+
+ 	<!-- 
+	<bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+		<constructor-arg>
+			<set>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="10.128.2.129"/>
+					<constructor-arg name="port" value="7001"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="10.128.2.129"/>
+					<constructor-arg name="port" value="7002"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="10.128.2.129"/>
+					<constructor-arg name="port" value="7003"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="10.128.2.129"/>
+					<constructor-arg name="port" value="7004"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="10.128.2.129"/>
+					<constructor-arg name="port" value="7005"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="10.128.2.129"/>
+					<constructor-arg name="port" value="7006"/>
+				</bean>
+			</set>
+		</constructor-arg>
+	</bean>
+ -->
+	<!--  配置实现类 -->
+	<!-- 
+	<bean id="jedisClientCluster" class="com.wy.redis.JedisClientCluster"/>
+	 -->
+</beans>

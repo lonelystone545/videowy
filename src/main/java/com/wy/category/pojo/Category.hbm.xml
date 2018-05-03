@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.wy.category.pojo.Category" table="category">
+		<id name="cid">
+			<generator class="native"/>
+		</id>
+		<property name="name"/>
+		
+		<set name="videos" cascade="delete" lazy="false" order-by="click desc" >
+			<key column="cid"/>
+			<one-to-many class="com.wy.video.pojo.Video"/>
+		</set>
+	</class>
+</hibernate-mapping>

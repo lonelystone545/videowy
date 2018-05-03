@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.wy.review.pojo.Review" table="review">
+		<id name="rid">
+			<generator class="native"/>
+		</id>
+		<property name="time"/>
+		<property name="content"/>
+		
+		<many-to-one name="video" class="com.wy.video.pojo.Video" column="vid" lazy="false"/>
+		<many-to-one name="user" class="com.wy.user.pojo.User" column="uid"/>
+	</class>
+</hibernate-mapping>

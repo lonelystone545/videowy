@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.wy.video.pojo.Video" table="video">
+		<id name="vid">
+			<generator class="native"/>
+		</id>
+		<property name="name"/>
+		<property name="intro" length="8192"/>
+		<property name="uploadtime"/>
+		<property name="click"/>
+		<property name="url"/>
+		<property name="oriurl"/>
+		<property name="thumbnailurl"/>
+		
+		
+		<many-to-one name="category" class="com.wy.category.pojo.Category" column="cid" lazy="false"/>
+		<many-to-one name="videoState" class="com.wy.video.pojo.VideoState" column="vsid" lazy="false"/>
+	</class>
+</hibernate-mapping>
