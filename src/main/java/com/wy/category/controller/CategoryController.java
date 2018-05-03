@@ -11,4 +11,8 @@ import com.wy.category.service.ICategoryService;
 @Scope("prototype")
 public class CategoryController {
 	//第一次修改
+	public static void main(String[] args) {
+		
+	}
+	
 }
