@@ -12,7 +12,7 @@ import com.wy.category.service.ICategoryService;
 public class CategoryController {
 	//第一次修改
 	public static void main(String[] args) {
-		
+		String a = "";
 	}
 	
 }
